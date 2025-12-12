@@ -7,26 +7,17 @@ local Camera = workspace.CurrentCamera
 local player = Players.LocalPlayer
 local guiName = "VNDXS_HUB_SHOOTER"
 
--- تنظيف النسخ القديمة
 if player.PlayerGui:FindFirstChild(guiName) then
 	player.PlayerGui[guiName]:Destroy()
 end
 
--- ============================================================================
--- 1. الإعدادات (CONFIG)
--- ============================================================================
-
 local CONFIG = {
-	OpenSize = UDim2.new(0.65, 0, 0.65, 0), -- الحجم الطبيعي
-	ClosedSize = UDim2.new(0.65, 0, 0, 55), -- حجم التصغير الطبيعي
-	
-	-- الألوان
+	OpenSize = UDim2.new(0.65, 0, 0.65, 0),
+	ClosedSize = UDim2.new(0.65, 0, 0, 55),
 	ThemeColor = Color3.fromRGB(10, 10, 10), 
 	SidebarColor = Color3.fromRGB(18, 18, 18), 
 	AccentColor = Color3.fromRGB(255, 255, 255),
 	TextColor = Color3.fromRGB(255, 255, 255),
-	
-	-- إعدادات الهاك
 	AimbotRange = 100,
 	OverrideRange = 50,
 	HighlightColor = Color3.fromRGB(255, 255, 255),
@@ -45,17 +36,12 @@ local function addCorner(parent, radius)
 	corner.Parent = parent
 end
 
--- ============================================================================
--- 2. منطق الهاك (LOGIC FUNCTIONS)
--- ============================================================================
-
 local ESP_Enabled = false
 local Aimbot_Enabled = false
 local Hitbox_Enabled = false
 local CurrentTarget = nil
 local Connections = {}
 
--- :: 1. وظيفة ESP ::
 local function ApplyHighlight(char)
 	if not char then return end
 	task.spawn(function()
@@ -80,7 +66,6 @@ local function RemoveHighlight(char)
 	end
 end
 
--- :: 2. وظيفة Hitbox ::
 local function ApplyHitbox(char)
 	if not char then return end
 	task.spawn(function()
@@ -96,7 +81,6 @@ local function ApplyHitbox(char)
 	end)
 end
 
--- :: إدارة اللاعبين ::
 local function SetupPlayerConnection(plr)
 	if plr == player then return end
 	
@@ -113,7 +97,6 @@ end
 for _, v in pairs(Players:GetPlayers()) do SetupPlayerConnection(v) end
 table.insert(Connections, Players.PlayerAdded:Connect(SetupPlayerConnection))
 
--- :: Toggles ::
 local function ToggleESP(state)
 	ESP_Enabled = state
 	for _, v in pairs(Players:GetPlayers()) do
@@ -135,7 +118,6 @@ local function ToggleHitbox(state)
 	end
 end
 
--- :: Aimbot Logic ::
 local function IsValidTarget(targetPlr)
 	if not targetPlr or not targetPlr.Character then return false end
 	local hum = targetPlr.Character:FindFirstChild("Humanoid")
@@ -205,10 +187,6 @@ RunService.RenderStepped:Connect(function()
 	end
 end)
 
--- ============================================================================
--- 3. واجهة المستخدم (UI STRUCTURE)
--- ============================================================================
-
 local mainFrame = Instance.new("Frame")
 mainFrame.Name = "MainFrame"
 mainFrame.Size = UDim2.new(0, 0, 0, 0)
@@ -226,7 +204,6 @@ stroke.Thickness = 1
 stroke.Transparency = 0.5
 stroke.Parent = mainFrame
 
--- H E A D E R
 local header = Instance.new("Frame")
 header.Name = "Header"
 header.Size = UDim2.new(1, 0, 0, 50)
@@ -235,7 +212,6 @@ header.ZIndex = 10
 header.Parent = mainFrame
 
 local titleText = Instance.new("TextLabel")
--- !! تم تغيير العنوان هنا !!
 titleText.Text = "VNDXS HUB SHOOTER"
 titleText.Font = Enum.Font.GothamBlack
 titleText.TextColor3 = CONFIG.AccentColor
@@ -246,17 +222,12 @@ titleText.BackgroundTransparency = 1
 titleText.TextXAlignment = Enum.TextXAlignment.Left
 titleText.Parent = header
 
--- LINE
 local line = Instance.new("Frame")
 line.Size = UDim2.new(1, 0, 0, 1)
 line.Position = UDim2.new(0, 0, 1, -1)
 line.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 line.BorderSizePixel = 0
 line.Parent = header
-
--- ============================================================================
--- 4. القائمة الجانبية ومحتوى التبويبات
--- ============================================================================
 
 local container = Instance.new("Frame")
 container.Name = "Container"
@@ -265,7 +236,6 @@ container.Position = UDim2.new(0, 0, 0, 50)
 container.BackgroundTransparency = 1
 container.Parent = mainFrame
 
--- 1. Sidebar (Left)
 local sidebar = Instance.new("Frame")
 sidebar.Name = "Sidebar"
 sidebar.Size = UDim2.new(0.25, 0, 1, 0)
@@ -282,7 +252,6 @@ local sidebarPad = Instance.new("UIPadding")
 sidebarPad.PaddingTop = UDim.new(0, 10)
 sidebarPad.Parent = sidebar
 
--- 2. Pages Area (Right)
 local pagesArea = Instance.new("Frame")
 pagesArea.Name = "PagesArea"
 pagesArea.Size = UDim2.new(0.75, 0, 1, 0)
@@ -355,7 +324,6 @@ btn1.BackgroundColor3 = CONFIG.AccentColor
 btn1.TextColor3 = Color3.new(0,0,0)
 profilePage.Visible = true
 
--- >>>>> 1. PROFILE Content <<<<<
 local function setupProfile()
 	local imgContainer = Instance.new("Frame")
 	imgContainer.Size = UDim2.new(0, 100, 0, 100)
@@ -412,7 +380,6 @@ local function setupProfile()
 end
 setupProfile()
 
--- >>>>> 2. SCRIPT Content <<<<<
 local function createHackBtn(text, callback)
 	local btn = Instance.new("TextButton")
 	btn.Size = UDim2.new(0.9, 0, 0, 45)
@@ -444,7 +411,6 @@ createHackBtn("PLAYER ESP (TRACKING)", function(s) ToggleESP(s) end)
 createHackBtn("AIMBOT (Head - 100m)", function(s) Aimbot_Enabled = s end)
 createHackBtn("HITBOX EXPANDER (Size 50)", function(s) ToggleHitbox(s) end)
 
--- >>>>> 3. SM Content <<<<<
 local function setupSM()
 	local title = Instance.new("TextLabel")
 	title.Text = "SCRIPT MAKER"
@@ -511,12 +477,8 @@ local function setupSM()
 end
 setupSM()
 
--- ============================================================================
--- 6. أزرار التحكم العلوية (Min, Max, Close)
--- ============================================================================
-
 local btnContainer = Instance.new("Frame")
-btnContainer.Size = UDim2.new(0.4, 0, 1, 0) -- مساحة أوسع للأزرار الثلاثة
+btnContainer.Size = UDim2.new(0.4, 0, 1, 0)
 btnContainer.Position = UDim2.new(0.6, 0, 0, 0)
 btnContainer.BackgroundTransparency = 1
 btnContainer.ZIndex = 20
@@ -548,67 +510,53 @@ local function createTopBtn(text, color, callback)
 	btn.MouseButton1Click:Connect(callback)
 end
 
--- متغيرات الحالة
 local isMinimized = false
 local isMaximized = false
 
--- 1. زر التصغير (Minimize)
 createTopBtn("_", CONFIG.AccentColor, function()
 	if isMinimized then
-		-- فتح (استرجاع الحجم بناءً على حالة التكبير)
 		isMinimized = false
 		container.Visible = true
 		local targetSize = isMaximized and UDim2.new(1, 0, 1, 0) or CONFIG.OpenSize
 		TweenService:Create(mainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {Size = targetSize}):Play()
 	else
-		-- إغلاق
 		isMinimized = true
 		container.Visible = false
-		-- نحافظ على العرض الحالي (سواء كان كاملاً أو عادياً) ولكن نقلل الارتفاع
 		local targetWidth = isMaximized and UDim2.new(1, 0, 0, 55) or CONFIG.ClosedSize
 		TweenService:Create(mainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {Size = targetWidth}):Play()
 	end
 end)
 
--- 2. زر التكبير/الاستعادة (Maximize/Restore) - الزر الجديد
 createTopBtn("[ ]", CONFIG.AccentColor, function()
 	if isMaximized then
-		-- العودة للحجم الطبيعي
 		isMaximized = false
-		isMinimized = false -- نلغي التصغير إذا كان موجوداً
+		isMinimized = false
 		container.Visible = true
 		
 		TweenService:Create(mainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {
 			Size = CONFIG.OpenSize,
-			Position = UDim2.new(0.5, 0, 0.5, 0) -- نعيده للمنتصف
+			Position = UDim2.new(0.5, 0, 0.5, 0)
 		}):Play()
 	else
-		-- ملء الشاشة
 		isMaximized = true
-		isMinimized = false -- نلغي التصغير إذا كان موجوداً
+		isMinimized = false
 		container.Visible = true
 		
 		TweenService:Create(mainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {
-			Size = UDim2.new(1, 0, 1, 0), -- ملء الشاشة
+			Size = UDim2.new(1, 0, 1, 0),
 			Position = UDim2.new(0.5, 0, 0.5, 0)
 		}):Play()
 	end
 end)
 
--- 3. زر الإغلاق (Close)
 createTopBtn("X", Color3.fromRGB(255, 80, 80), function()
 	screenGui:Destroy()
 end)
-
--- ============================================================================
--- 7. بدء التشغيل (Startup & Drag)
--- ============================================================================
 
 TweenService:Create(mainFrame, TweenInfo.new(0.8, Enum.EasingStyle.Elastic, Enum.EasingDirection.Out), {Size = CONFIG.OpenSize}):Play()
 
 local dragging, dragInput, dragStart, startPos
 local function update(input)
-	-- إذا كان مكبر (Maximized)، نمنع السحب حتى لا يخرب المنظر، أو يمكنك إزالته إذا أردت السحب في كل الحالات
 	if isMaximized then return end
 	
 	local delta = input.Position - dragStart
