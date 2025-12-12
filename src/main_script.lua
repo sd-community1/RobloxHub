@@ -331,116 +331,288 @@ local function createSidebarBtn(text, targetPageName)
 	
 	btn.MouseButton1Click:Connect(function()
 		for _, p in pairs(Pages) do p.Visible = false end
-		Pages[targetPageName].Visible = true
+		if Pages[targetPageName] then Pages[targetPageName].Visible = true end
 		
 		for _, b in pairs(Buttons) do
-			b.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-			b.TextColor3 = Color3.fromRGB(150, 150, 150)
+			TweenService:Create(b, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(30,30,30), TextColor3 = Color3.fromRGB(150,150,150)}):Play()
 		end
-		btn.BackgroundColor3 = CONFIG.AccentColor
-		btn.TextColor3 = CONFIG.ThemeColor
+		TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = CONFIG.AccentColor, TextColor3 = Color3.fromRGB(0,0,0)}):Play()
 	end)
 	
-	Buttons[targetPageName] = btn
+	table.insert(Buttons, btn)
 	return btn
 end
 
-local function createToggle(parent, text, defaultState, callback)
-	local frame = Instance.new("Frame")
-	frame.Size = UDim2.new(0.9, 0, 0, 40)
-	frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-	frame.BorderSizePixel = 0
-	frame.Parent = parent
-	addCorner(frame, 6)
+local profilePage = createPage("Profile")
+local scriptPage = createPage("Script")
+local smPage = createPage("SM")
+
+local btn1 = createSidebarBtn("Profile", "Profile")
+local btn2 = createSidebarBtn("Script", "Script")
+local btn3 = createSidebarBtn("SM", "SM")
+
+btn1.BackgroundColor3 = CONFIG.AccentColor
+btn1.TextColor3 = Color3.new(0,0,0)
+profilePage.Visible = true
+
+-- >>>>> 1. PROFILE Content <<<<<
+local function setupProfile()
+	local imgContainer = Instance.new("Frame")
+	imgContainer.Size = UDim2.new(0, 100, 0, 100)
+	imgContainer.BackgroundTransparency = 1
+	imgContainer.Parent = profilePage
 	
-	local label = Instance.new("TextLabel")
-	label.Text = text
-	label.Font = Enum.Font.GothamBold
-	label.TextColor3 = CONFIG.TextColor
-	label.TextSize = 14
-	label.Size = UDim2.new(0.7, 0, 1, 0)
-	label.Position = UDim2.new(0, 10, 0, 0)
-	label.BackgroundTransparency = 1
-	label.TextXAlignment = Enum.TextXAlignment.Left
-	label.Parent = frame
+	local img = Instance.new("ImageLabel")
+	img.Size = UDim2.new(1, 0, 1, 0)
+	img.Image = Players:GetUserThumbnailAsync(player.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size420x420)
+	img.BackgroundColor3 = Color3.fromRGB(30,30,30)
+	img.Parent = imgContainer
+	addCorner(img, 100)
 	
-	local toggleBtn = Instance.new("TextButton")
-	toggleBtn.Size = UDim2.new(0, 20, 0, 20)
-	toggleBtn.Position = UDim2.new(1, -30, 0.5, -10)
-	toggleBtn.BackgroundColor3 = defaultState and CONFIG.AccentColor or Color3.fromRGB(50, 50, 50)
-	toggleBtn.Text = ""
-	toggleBtn.AutoButtonColor = false
-	toggleBtn.Parent = frame
-	addCorner(toggleBtn, 10)
+	local stroke = Instance.new("UIStroke")
+	stroke.Color = CONFIG.AccentColor
+	stroke.Thickness = 2
+	stroke.Parent = img
 	
-	local state = defaultState
+	local function addInfo(title, val)
+		local f = Instance.new("Frame")
+		f.Size = UDim2.new(0.9, 0, 0, 40)
+		f.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+		f.Parent = profilePage
+		addCorner(f, 6)
+		
+		local t = Instance.new("TextLabel")
+		t.Text = title .. ": "
+		t.Size = UDim2.new(0.4, 0, 1, 0)
+		t.Position = UDim2.new(0.05, 0, 0, 0)
+		t.Font = Enum.Font.GothamMedium
+		t.TextColor3 = Color3.fromRGB(150, 150, 150)
+		t.TextXAlignment = Enum.TextXAlignment.Left
+		t.BackgroundTransparency = 1
+		t.Parent = f
+		
+		local v = Instance.new("TextLabel")
+		v.Text = val
+		v.Size = UDim2.new(0.5, 0, 1, 0)
+		v.Position = UDim2.new(0.45, 0, 0, 0)
+		v.Font = Enum.Font.GothamBold
+		v.TextColor3 = CONFIG.AccentColor
+		v.TextXAlignment = Enum.TextXAlignment.Right
+		v.BackgroundTransparency = 1
+		v.Parent = f
+	end
 	
-	toggleBtn.MouseButton1Click:Connect(function()
-		state = not state
-		toggleBtn.BackgroundColor3 = state and CONFIG.AccentColor or Color3.fromRGB(50, 50, 50)
-		callback(state)
+	local days = player.AccountAge
+	local years = days / 365.25
+	local createdYear = math.floor(os.date("%Y") - years)
+	
+	addInfo("Username", player.Name)
+	addInfo("Alias", player.DisplayName)
+	addInfo("Created", tostring(createdYear))
+end
+setupProfile()
+
+-- >>>>> 2. SCRIPT Content <<<<<
+local function createHackBtn(text, callback)
+	local btn = Instance.new("TextButton")
+	btn.Size = UDim2.new(0.9, 0, 0, 45)
+	btn.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+	btn.Text = text
+	btn.Font = Enum.Font.GothamBold
+	btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+	btn.TextSize = 14
+	btn.AutoButtonColor = false
+	btn.Parent = scriptPage
+	addCorner(btn, 8)
+	
+	local isActive = false
+	btn.MouseButton1Click:Connect(function()
+		isActive = not isActive
+		if callback then callback(isActive) end
+		
+		if isActive then
+			TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = CONFIG.AccentColor, TextColor3 = Color3.new(0,0,0)}):Play()
+			btn.Text = text .. " [ON]"
+		else
+			TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(35, 35, 35), TextColor3 = Color3.new(1,1,1)}):Play()
+			btn.Text = text
+		end
 	end)
-	
-	return frame
 end
 
+createHackBtn("PLAYER ESP (TRACKING)", function(s) ToggleESP(s) end)
+createHackBtn("AIMBOT (Head - 100m)", function(s) Aimbot_Enabled = s end)
+createHackBtn("HITBOX EXPANDER (Size 50)", function(s) ToggleHitbox(s) end)
+
+-- >>>>> 3. SM Content <<<<<
+local function setupSM()
+	local title = Instance.new("TextLabel")
+	title.Text = "SCRIPT MAKER"
+	title.Size = UDim2.new(1, 0, 0, 30)
+	title.Font = Enum.Font.GothamBlack
+	title.TextColor3 = CONFIG.AccentColor
+	title.TextSize = 24
+	title.BackgroundTransparency = 1
+	title.Parent = smPage
+	
+	local devName = Instance.new("TextLabel")
+	devName.Text = "VNDXS"
+	devName.Size = UDim2.new(1, 0, 0, 30)
+	devName.Font = Enum.Font.Code
+	devName.TextColor3 = Color3.fromRGB(200, 200, 200)
+	devName.TextSize = 18
+	devName.BackgroundTransparency = 1
+	devName.Parent = smPage
+	
+	local box = Instance.new("Frame")
+	box.Size = UDim2.new(0.9, 0, 0, 100)
+	box.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+	box.Parent = smPage
+	addCorner(box, 8)
+	
+	local lbl = Instance.new("TextLabel")
+	lbl.Text = "Discord Server:"
+	lbl.Size = UDim2.new(1, 0, 0, 30)
+	lbl.TextColor3 = Color3.fromRGB(150, 150, 150)
+	lbl.Font = Enum.Font.GothamMedium
+	lbl.BackgroundTransparency = 1
+	lbl.Parent = box
+	
+	local link = "https://discord.gg/jRC5haR4g4"
+	local linkLbl = Instance.new("TextBox")
+	linkLbl.Text = link
+	linkLbl.Size = UDim2.new(0.9, 0, 0, 30)
+	linkLbl.Position = UDim2.new(0.05, 0, 0, 30)
+	linkLbl.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+	linkLbl.TextColor3 = Color3.fromRGB(88, 101, 242)
+	linkLbl.ClearTextOnFocus = false
+	linkLbl.TextEditable = false
+	linkLbl.Parent = box
+	addCorner(linkLbl, 4)
+	
+	local copyBtn = Instance.new("TextButton")
+	copyBtn.Text = "COPY LINK"
+	copyBtn.Size = UDim2.new(0.5, 0, 0, 30)
+	copyBtn.Position = UDim2.new(0.25, 0, 0, 65)
+	copyBtn.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	copyBtn.TextColor3 = Color3.fromRGB(0, 0, 0)
+	copyBtn.Font = Enum.Font.GothamBold
+	copyBtn.Parent = box
+	addCorner(copyBtn, 4)
+	
+	copyBtn.MouseButton1Click:Connect(function()
+		pcall(function() setclipboard(link) end)
+		copyBtn.Text = "COPIED!"
+		copyBtn.BackgroundColor3 = Color3.fromRGB(80, 255, 80)
+		task.wait(1)
+		copyBtn.Text = "COPY LINK"
+		copyBtn.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	end)
+end
+setupSM()
+
 -- ============================================================================
--- 5. بناء التبويبات (BUILDING TABS)
+-- 6. أزرار التحكم العلوية (Min, Max, Close)
 -- ============================================================================
 
--- 1. Tab: Combat
-local combatPage = createPage("Combat")
-createSidebarBtn("Combat", "Combat")
-createToggle(combatPage, "Aimbot", Aimbot_Enabled, function(state)
-	Aimbot_Enabled = state
+local btnContainer = Instance.new("Frame")
+btnContainer.Size = UDim2.new(0.4, 0, 1, 0) -- مساحة أوسع للأزرار الثلاثة
+btnContainer.Position = UDim2.new(0.6, 0, 0, 0)
+btnContainer.BackgroundTransparency = 1
+btnContainer.ZIndex = 20
+btnContainer.Parent = header
+
+local btnLayout = Instance.new("UIListLayout")
+btnLayout.FillDirection = Enum.FillDirection.Horizontal
+btnLayout.HorizontalAlignment = Enum.HorizontalAlignment.Right
+btnLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+btnLayout.Padding = UDim.new(0, 5)
+btnLayout.Parent = btnContainer
+
+local function createTopBtn(text, color, callback)
+	local btn = Instance.new("TextButton")
+	btn.Text = text
+	btn.Size = UDim2.new(0, 30, 0, 30)
+	btn.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	btn.BackgroundTransparency = 0.9
+	btn.TextColor3 = color
+	btn.Font = Enum.Font.GothamBlack
+	btn.TextSize = 16
+	btn.Parent = btnContainer
+	addCorner(btn, 6)
+	
+	local p = Instance.new("UIPadding")
+	p.PaddingRight = UDim.new(0, 10)
+	p.Parent = btnContainer
+	
+	btn.MouseButton1Click:Connect(callback)
+end
+
+-- متغيرات الحالة
+local isMinimized = false
+local isMaximized = false
+
+-- 1. زر التصغير (Minimize)
+createTopBtn("_", CONFIG.AccentColor, function()
+	if isMinimized then
+		-- فتح (استرجاع الحجم بناءً على حالة التكبير)
+		isMinimized = false
+		container.Visible = true
+		local targetSize = isMaximized and UDim2.new(1, 0, 1, 0) or CONFIG.OpenSize
+		TweenService:Create(mainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {Size = targetSize}):Play()
+	else
+		-- إغلاق
+		isMinimized = true
+		container.Visible = false
+		-- نحافظ على العرض الحالي (سواء كان كاملاً أو عادياً) ولكن نقلل الارتفاع
+		local targetWidth = isMaximized and UDim2.new(1, 0, 0, 55) or CONFIG.ClosedSize
+		TweenService:Create(mainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {Size = targetWidth}):Play()
+	end
 end)
-createToggle(combatPage, "Hitbox", Hitbox_Enabled, ToggleHitbox)
 
--- 2. Tab: Visuals
-local visualsPage = createPage("Visuals")
-createSidebarBtn("Visuals", "Visuals")
-createToggle(visualsPage, "ESP", ESP_Enabled, ToggleESP)
-
--- 3. Tab: Settings
-local settingsPage = createPage("Settings")
-createSidebarBtn("Settings", "Settings")
-
--- ============================================================================
--- 6. منطق الواجهة (UI LOGIC)
--- ============================================================================
-
--- A. Toggle UI with 'Insert' key
-local isUIOpen = false
-local function toggleUI(input, gameProcessed)
-	if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.Insert and not gameProcessed then
-		isUIOpen = not isUIOpen
-		local targetSize = isUIOpen and CONFIG.OpenSize or CONFIG.ClosedSize
-		local targetPos = isUIOpen and UDim2.new(0.5, 0, 0.5, 0) or UDim2.new(0.5, 0, 1, -25)
+-- 2. زر التكبير/الاستعادة (Maximize/Restore) - الزر الجديد
+createTopBtn("[ ]", CONFIG.AccentColor, function()
+	if isMaximized then
+		-- العودة للحجم الطبيعي
+		isMaximized = false
+		isMinimized = false -- نلغي التصغير إذا كان موجوداً
+		container.Visible = true
 		
-		TweenService:Create(mainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-			Size = targetSize,
-			Position = targetPos
+		TweenService:Create(mainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {
+			Size = CONFIG.OpenSize,
+			Position = UDim2.new(0.5, 0, 0.5, 0) -- نعيده للمنتصف
+		}):Play()
+	else
+		-- ملء الشاشة
+		isMaximized = true
+		isMinimized = false -- نلغي التصغير إذا كان موجوداً
+		container.Visible = true
+		
+		TweenService:Create(mainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {
+			Size = UDim2.new(1, 0, 1, 0), -- ملء الشاشة
+			Position = UDim2.new(0.5, 0, 0.5, 0)
 		}):Play()
 	end
-end
+end)
 
-UserInputService.InputBegan:Connect(toggleUI)
+-- 3. زر الإغلاق (Close)
+createTopBtn("X", Color3.fromRGB(255, 80, 80), function()
+	screenGui:Destroy()
+end)
 
--- B. Dragging
-local dragging
-local dragStart
-local startPos
+-- ============================================================================
+-- 7. بدء التشغيل (Startup & Drag)
+-- ============================================================================
 
-local function drag(input)
-	if dragging then
-		local delta = input.Position - dragStart
-		local newPos = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-		mainFrame.Position = newPos
-	end
-end
+TweenService:Create(mainFrame, TweenInfo.new(0.8, Enum.EasingStyle.Elastic, Enum.EasingDirection.Out), {Size = CONFIG.OpenSize}):Play()
 
-local function dragEnd()
-	dragging = false
+local dragging, dragInput, dragStart, startPos
+local function update(input)
+	-- إذا كان مكبر (Maximized)، نمنع السحب حتى لا يخرب المنظر، أو يمكنك إزالته إذا أردت السحب في كل الحالات
+	if isMaximized then return end
+	
+	local delta = input.Position - dragStart
+	mainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
 end
 
 header.InputBegan:Connect(function(input)
@@ -448,32 +620,8 @@ header.InputBegan:Connect(function(input)
 		dragging = true
 		dragStart = input.Position
 		startPos = mainFrame.Position
-		
-		input.Changed:Connect(function()
-			if input.UserInputState == Enum.UserInputState.End then
-				dragEnd()
-			end
-		end)
+		input.Changed:Connect(function() if input.UserInputState == Enum.UserInputState.End then dragging = false end end)
 	end
 end)
-
-UserInputService.InputChanged:Connect(drag)
-UserInputService.InputEnded:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-		dragEnd()
-	end
-end)
-
--- C. Initial State
-task.wait(0.1)
--- Simulate 'Insert' key press to open the UI initially
-toggleUI({UserInputType = Enum.UserInputType.Keyboard, KeyCode = Enum.KeyCode.Insert}, false)
-
--- D. Select first tab
-Buttons["Combat"].MouseButton1Click:Fire()
-
--- E. Cleanup on script stop
-screenGui.Parent = nil
-for _, conn in pairs(Connections) do
-	conn:Disconnect()
-end
+header.InputChanged:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then dragInput = input end end)
+UserInputService.InputChanged:Connect(function(input) if input == dragInput and dragging then update(input) end end)
